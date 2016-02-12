@@ -25,18 +25,8 @@
 #include "SimpleCLI/cfg/scliConfig.h"
 #include <stdint.h>
 
-typedef int32_t SCLI_CMD_RET;
-
-typedef SCLI_CMD_RET (*SCLI_CMD_CB)(uint8_t argc, char **argv);
-
-typedef struct
-{
-  SCLI_CMD_CB     CmdCallback;
-  char            CmdName[SCLI_CMD_NAME_MAX_LEN+1];
-  char            HelpShort[SCLI_S_HELP_MAX_LEN];
-  const char      *HelpLong;
-}SCLI_CMD_T;
 #define SCLI_CMD_LIST_END {0,"\0","\0",0}
+#define SCLI_FIFO_EMPTY (-1)
 
 #if SCLI_CMD_HIST < 256
 typedef uint8_t SCLI_BUF_IDX;
@@ -50,6 +40,15 @@ typedef uint8_t SCLI_LINE_IDX;
 typedef uint16_t SCLI_LINE_IDX;
 #endif
 
+#if SCLI_GETCH_BUF_SIZE < 256
+typedef uint8_t SCLI_FIFO_IDX;
+#else
+typedef uint16_t SCLI_FIFO_IDX;
+#endif
+
+typedef int32_t SCLI_CMD_RET;
+typedef SCLI_CMD_RET (*SCLI_CMD_CB)(uint8_t argc, char **argv);
+
 typedef enum
 {
   SCLI_BUF_INIT = 0,
@@ -59,6 +58,14 @@ typedef enum
   SCLI_BUF_PARSING,
   SCLI_BUF_EXEC
 }SCLI_BUF_STATE;
+
+typedef struct
+{
+  SCLI_CMD_CB     CmdCallback;
+  char            CmdName[SCLI_CMD_NAME_MAX_LEN+1];
+  char            HelpShort[SCLI_S_HELP_MAX_LEN];
+  const char      *HelpLong;
+}SCLI_CMD_T;
 
 typedef struct
 {
@@ -79,12 +86,6 @@ typedef struct
 
 }SCLI_INTERFACE_T;
 
-#if SCLI_GETCH_BUF_SIZE < 256
-typedef uint8_t SCLI_FIFO_IDX;
-#else
-typedef uint16_t SCLI_FIFO_IDX;
-#endif
-
 typedef struct
 {
   char            Buffer[SCLI_GETCH_BUF_SIZE];
@@ -93,6 +94,5 @@ typedef struct
   SCLI_FIFO_IDX   Size;
 }SCLI_FIFO_T;
 
-#define SCLI_FIFO_EMPTY (-1)
 
 #endif /* SCLI_TYPES_H_ */

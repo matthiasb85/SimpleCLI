@@ -184,7 +184,7 @@ static SCLI_CMD_RET _scliCore_HelpCmd(uint8_t argc, char **argv)
    * lookup with internal command table
    * -> print long help text
    */
-  if((Cmd = _scliCore_GetCommandInTable(argv[1], _scliCore_BasicCommands,i)))
+  if((Cmd = _scliCore_GetCommandInTable(argv[1], _scliCore_BasicCommands,Length)))
   {
     printf("\r\n%s\r\n",Cmd->HelpLong);
     return 0;

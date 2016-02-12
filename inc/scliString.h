@@ -28,11 +28,11 @@
 #if SCLI_USE_OWN_STR_FUNC > 0
 extern uint32_t scliString_strlen(char *);
 extern int      scliString_strncmp(char *, char *, size_t);
-extern void     scliString_Memset(void*, int8_t, size_t);
+extern void     scliString_memset(void*, int8_t, size_t);
 
 #define strlen  scliString_strlen
 #define strncmp scliString_strncmp
-#define memset  scliString_Memset
+#define memset  scliString_memset
 #else
 #include <string.h>
 #endif

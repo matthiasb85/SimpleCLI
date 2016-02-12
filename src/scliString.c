@@ -45,7 +45,7 @@ int scliString_strncmp(char * str1,char *str2,size_t Len)
 
   return 0;
 }
-void scliString_Memset(void* buf, int8_t Val,size_t Len)
+void scliString_memset(void* buf, int8_t Val,size_t Len)
 {
   int8_t *target = (int8_t *)buf;
   size_t i = 0;
