@@ -45,3 +45,16 @@ const char scliText_Version[] =
     " SimpleCLI V0.1\r\n"
     " Author Mattias Beckert\r\n"
     "             <beckert.matthias@googlemail.com>";
+
+const char scliText_Set[] =
+    " Set a system variable to a given value\r\n  set <ident> <value>";
+
+const char scliText_Get[] =
+    " Get value of a system variable\r\n  get <ident>";
+
+const char scliText_Conf[] =
+    " Manage configuration subsystem\r\n";
+
+const char scliText_ConfNoTable[] =
+    " No config table found, system might be uninitialized\r\n"
+    " scliConf_RegisterConfig(...) must be called before at least once!\r\n";

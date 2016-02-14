@@ -1,7 +1,7 @@
 /*
- * scliString.c
+ * scliConf.h
  *
- *  Created on: 31.01.2016
+ *  Created on: 12.02.2016
  *      Author: Matthias Beckert <beckert.matthias@googlemail.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,39 +19,17 @@
  *
  */
 
-#include "SimpleCLI/inc/scliString.h"
+#ifndef SCLICONF_H_
+#define SCLICONF_H_
 
-#if SCLI_USE_OWN_STR_FUNC > 0
+#include "SimpleCLI/inc/scliTypes.h"
 
-uint32_t scliString_strlen(char *str)
-{
-  uint32_t i = 0;
+#if SCLI_USE_CFG_SYSTEM > 0
 
-  while(str[i])
-    i++;
-
-  return i;
-}
-
-int scliString_strncmp(char * str1,char *str2,size_t Len)
-{
-  size_t i = 0;
-
-  for(i=0; i < Len; i++)
-  {
-    if(str1[i] != str2[i])
-      return -1;
-  }
-
-  return 0;
-}
-void scliString_memset(void* buf, int8_t Val,size_t Len)
-{
-  int8_t *target = (int8_t *)buf;
-  size_t i = 0;
-
-  for(i=0; i < Len; i++)
-    target[i] = Val;
-
-}
+extern SCLI_CMD_RET         scliConf_SetCmd(uint8_t argc, char **argv);
+extern SCLI_CMD_RET         scliConf_GetCmd(uint8_t argc, char **argv);
+extern SCLI_CMD_RET         scliConf_ConfCmd(uint8_t argc, char **argv);
+extern SCLI_CFG_HANDLE_T *  scliConf_RegisterConfig(const char *const Name, const char *const Desc, SCLI_CFG_ENTRY_T *Table);
 #endif
+
+#endif /* SCLICONF_H_ */

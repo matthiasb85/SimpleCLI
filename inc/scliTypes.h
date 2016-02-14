@@ -25,7 +25,7 @@
 #include "SimpleCLI/cfg/scliConfig.h"
 #include <stdint.h>
 
-#define SCLI_CMD_LIST_END {0,"\0","\0",0}
+#define SCLI_CMD_LIST_END {0,0,0,0}
 #define SCLI_FIFO_EMPTY (-1)
 
 #if SCLI_CMD_HIST < 256
@@ -61,10 +61,10 @@ typedef enum
 
 typedef struct
 {
-  SCLI_CMD_CB     CmdCallback;
-  char            CmdName[SCLI_CMD_NAME_MAX_LEN+1];
-  char            HelpShort[SCLI_S_HELP_MAX_LEN];
-  const char      *HelpLong;
+  SCLI_CMD_CB       CmdCallback;
+  const char *const CmdName;
+  const char *const HelpShort;
+  const char       *HelpLong;
 }SCLI_CMD_T;
 
 typedef struct
@@ -94,5 +94,88 @@ typedef struct
   SCLI_FIFO_IDX   Size;
 }SCLI_FIFO_T;
 
+#if SCLI_USE_CFG_SYSTEM > 0
+
+#define SCLI_CFG_VAR_SIZE_MASK  0x0F
+#define SCLI_CFG_CMP_LIST_END   {.Str = 0, .Value.Unsigned = 0}
+#define SCLI_CFG_ENTRY_LIST_END {0, SCLI_CFG_VAR_NONE, SCLI_CFG_PARSE_INT, 0, 0, 0, 0}
+
+typedef enum
+{
+  SCLI_CFG_VAR_NONE   = 0x00,
+  SCLI_CFG_VAR_INT8S  = 0x11,
+  SCLI_CFG_VAR_INT8U  = 0x21,
+  SCLI_CFG_VAR_INT16S = 0x32,
+  SCLI_CFG_VAR_INT16U = 0x42,
+  SCLI_CFG_VAR_INT32S = 0x54,
+  SCLI_CFG_VAR_INT32U = 0x64,
+  SCLI_CFG_VAR_STRING = 0xFF,
+}SCLI_CFG_VAR_TYPE;
+
+typedef enum
+{
+  SCLI_CFG_PARSE_INT = 0,
+  SCLI_CFG_PARSE_STR_CMP,
+  SCLI_CFG_PARSE_STR_PLAIN,
+}SCLI_CFG_P_METHOD;
+
+typedef struct
+{
+  const char *const Str;
+  union
+  {
+    int32_t   Signed;
+    uint32_t  Unsigned;
+  }Value;
+}SCLI_CFG_CMP_T;
+
+typedef struct
+{
+  const char *const Name;
+  SCLI_CFG_VAR_TYPE Type;
+  SCLI_CFG_P_METHOD ParseMethod;
+  SCLI_CFG_CMP_T   *StrCmpTable;
+  const char *const Desc;
+  size_t            Size;
+  void             *Target;
+}SCLI_CFG_ENTRY_T;
+
+typedef struct _SCLI_CFG_HANDLE
+{
+  char *                    Name;
+  char *                    Desc;
+  SCLI_CFG_ENTRY_T         *Table;
+  struct _SCLI_CFG_HANDLE  *Prev;
+  struct _SCLI_CFG_HANDLE  *Next;
+}SCLI_CFG_HANDLE_T;
+
+typedef struct _SCLI_CFG_FS_ENTRY
+{
+  SCLI_CFG_VAR_TYPE           Type;
+  struct _SCLI_CFG_FS_ENTRY  *Next;
+  union
+  {
+    struct
+    {
+      uint32_t  Value;
+      char      Name;
+    }UnsignedNum;
+    struct
+    {
+      int32_t   Value;
+      char      Name;
+    }SignedNum;
+    char String;
+  }Payload;
+}SCLI_CFG_FS_ENTRY_T;
+
+typedef struct _SCLI_CFG_RAW_FS
+{
+  uint32_t                  Hash;
+  SCLI_CFG_FS_ENTRY_T      *Start;
+  struct _SCLI_CFG_RAW_FS  *Prev;
+  struct _SCLI_CFG_RAW_FS  *Next;
+}SCLI_CFG_RAW_FS_T;
+#endif
 
 #endif /* SCLI_TYPES_H_ */

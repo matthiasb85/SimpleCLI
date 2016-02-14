@@ -20,7 +20,8 @@
  */
 
 #include "SimpleCLI/inc/scliCore.h"
-#include "SimpleCLI/inc/scliString.h"
+#include "SimpleCLI/inc/scliStdC.h"
+#include "SimpleCLI/inc/scliConf.h"
 
 /*
  * Static variables
@@ -49,7 +50,11 @@ static SCLI_CMD_T _scliCore_BasicCommands[] =
     {_scliCore_HelpCmd,     "help",     "Displays help text",     scliText_Help},
     {_scliCore_VersionCmd,  "version",  "Displays version text",  scliText_Version},
     {_scliCore_HistoryCmd,  "history",  "Displays history",       scliText_Version},
-
+#if SCLI_USE_CFG_SYSTEM > 0
+    {scliConf_SetCmd,       "set",      "Set system variable",    scliText_Set},
+    {scliConf_GetCmd,       "get",      "Get system variable",    scliText_Get},
+    {scliConf_ConfCmd,      "conf",     "Configuration overview", scliText_Conf},
+#endif
     SCLI_CMD_LIST_END
 };
 
@@ -67,24 +72,6 @@ static inline void _scliCore_PrintPrompt(void)
 static inline void _scliCore_PrintWelcome(void)
 {
   printf("\r\n%s",scliText_WelcomeMsg);
-}
-
-/*
- * Perform command lookup,
- * return pointer to command if successful
- */
-static SCLI_CMD_T * _scliCore_GetCommandInTable(char * Cmd, SCLI_CMD_T * Table, SCLI_LINE_IDX CmdLen)
-{
-  size_t CmdNameLen = 0;
-  while(Table->CmdCallback != (SCLI_CMD_CB)0)
-  {
-    CmdNameLen = strlen(Table->CmdName);
-    if(CmdNameLen == CmdLen && strncmp(Cmd,Table->CmdName,CmdNameLen) == 0)
-      return Table;
-    Table++;
-  }
-
-  return (SCLI_CMD_T *)0;
 }
 
 /*
@@ -109,9 +96,7 @@ static SCLI_BUF_IDX _scliCore_GetNextCmdBuffer(SCLI_BUF_IDX CurIdx)
  */
 static SCLI_CMD_RET _scliCore_HelpCmd(uint8_t argc, char **argv)
 {
-  SCLI_LINE_IDX i = 0;
   SCLI_CMD_T * Cmd;
-  size_t StrLen = 0;
   /*
    * No additional parameter
    * -> print short help text for all
@@ -124,35 +109,13 @@ static SCLI_CMD_RET _scliCore_HelpCmd(uint8_t argc, char **argv)
     if(Table != _scliCore_BasicCommands)
     {
       printf("\r\n User defined commands:\r\n");
-      while(Table->CmdCallback != (SCLI_CMD_CB)0)
-      {
-        StrLen = strlen(Table->CmdName);
-
-        for(i = StrLen; i < SCLI_CMD_NAME_MAX_LEN; i++)
-          _scliCore_Interface->PutCh(' ');
-
-        printf("    %s:", Table->CmdName);
-
-
-        printf(" %s\r\n", Table->HelpShort);
-        Table++;
-      }
+      scliCore_PrintHelp(Table,0);
     }
     Table = _scliCore_BasicCommands;
     printf("\r\n Internal commands:\r\n");
 
-    while(Table->CmdCallback != (SCLI_CMD_CB)0)
-    {
-      StrLen = strlen(Table->CmdName);
+    scliCore_PrintHelp(Table,0);
 
-      for(i = StrLen; i < SCLI_CMD_NAME_MAX_LEN; i++)
-        _scliCore_Interface->PutCh(' ');
-
-      printf("    %s:", Table->CmdName);
-
-      printf(" %s\r\n", Table->HelpShort);
-      Table++;
-    }
     return 0;
   }
   /*
@@ -173,9 +136,10 @@ static SCLI_CMD_RET _scliCore_HelpCmd(uint8_t argc, char **argv)
    * Perform lookup in user level command table
    * -> print long help text
    */
-  if((Cmd = _scliCore_GetCommandInTable(argv[1], _scliCore_Interface->UserLevelCommands,Length)))
+  if((Cmd = scliCore_GetCommandInTable(argv[1], _scliCore_Interface->UserLevelCommands,Length)))
   {
-    printf("\r\n%s\r\n",Cmd->HelpLong);
+    scliCore_PrintHelp(Cmd,1);
+
     return 0;
   }
 
@@ -184,7 +148,7 @@ static SCLI_CMD_RET _scliCore_HelpCmd(uint8_t argc, char **argv)
    * lookup with internal command table
    * -> print long help text
    */
-  if((Cmd = _scliCore_GetCommandInTable(argv[1], _scliCore_BasicCommands,Length)))
+  if((Cmd = scliCore_GetCommandInTable(argv[1], _scliCore_BasicCommands,Length)))
   {
     printf("\r\n%s\r\n",Cmd->HelpLong);
     return 0;
@@ -248,7 +212,7 @@ static void _scliCore_TabCompletion(SCLI_CMD_INPUT_T *InputBuffer)
    */
   while(Table->CmdCallback != (SCLI_CMD_CB)0)
   {
-    if(strncmp(InputBuffer->Line,Table->CmdName,InputBuffer->LineIdx) == 0)
+    if(strncmp(InputBuffer->Line,(char *)Table->CmdName,InputBuffer->LineIdx) == 0)
     {
       /*
        * Match found, print newline (for the first command)
@@ -271,7 +235,7 @@ static void _scliCore_TabCompletion(SCLI_CMD_INPUT_T *InputBuffer)
     Table = _scliCore_BasicCommands;
     while(Table->CmdCallback != (SCLI_CMD_CB)0)
     {
-      if(strncmp(InputBuffer->Line,Table->CmdName,InputBuffer->LineIdx) == 0)
+      if(strncmp(InputBuffer->Line,(char *)Table->CmdName,InputBuffer->LineIdx) == 0)
       {
         /*
          * Match found, print newline (for the first command)
@@ -321,13 +285,13 @@ static SCLI_CMD_T *  _scliCore_CommandLookup(SCLI_CMD_INPUT_T *InputBuffer)
   /*
    * Lookup in user defined commands
    */
-  if((Cmd = _scliCore_GetCommandInTable(InputBuffer->Line, _scliCore_Interface->UserLevelCommands,i)))
+  if((Cmd = scliCore_GetCommandInTable(InputBuffer->Line, _scliCore_Interface->UserLevelCommands,i)))
     return Cmd;
 
   /*
    * Lookup in user defined commands
    */
-  if((Cmd = _scliCore_GetCommandInTable(InputBuffer->Line, _scliCore_BasicCommands,i)))
+  if((Cmd = scliCore_GetCommandInTable(InputBuffer->Line, _scliCore_BasicCommands,i)))
     return Cmd;
 
   return (SCLI_CMD_T *)0;
@@ -671,6 +635,57 @@ void scliCore_ExecuteCommand(SCLI_CMD_INPUT_T *InputBuffer)
   _scliCore_PrintPrompt();
 
   return;
+}
+
+/*
+ * Print help message
+ * either the long version of a single
+ * or the short version of multiple entries
+ */
+void scliCore_PrintHelp(SCLI_CMD_T * Table, uint8_t SingleEntry)
+{
+  if(SingleEntry)
+  {
+    if(Table->HelpLong)
+      printf("\r\n%s\r\n",Table->HelpLong);
+
+    return;
+  }
+  else
+  {
+    while(Table->CmdCallback != (SCLI_CMD_CB)0)
+    {
+      size_t StrLen = strlen((char *)Table->CmdName);
+      size_t i = 0;
+
+      for(i = StrLen; i < SCLI_CMD_NAME_MAX_LEN; i++)
+        _scliCore_Interface->PutCh(' ');
+
+      printf("    %s:", Table->CmdName);
+
+
+      printf(" %s\r\n", Table->HelpShort);
+      Table++;
+    }
+  }
+}
+
+/*
+ * Perform command lookup,
+ * return pointer to command if successful
+ */
+SCLI_CMD_T * scliCore_GetCommandInTable(char * Cmd, SCLI_CMD_T * Table, SCLI_LINE_IDX CmdLen)
+{
+  size_t CmdNameLen = 0;
+  while(Table->CmdCallback != (SCLI_CMD_CB)0)
+  {
+    CmdNameLen = strlen((char *)Table->CmdName);
+    if(CmdNameLen == CmdLen && strncmp(Cmd,(char *)Table->CmdName,CmdNameLen) == 0)
+      return Table;
+    Table++;
+  }
+
+  return (SCLI_CMD_T *)0;
 }
 
 /*

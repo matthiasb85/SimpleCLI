@@ -36,5 +36,9 @@ extern const char scliText_WelcomeMsg[];
 extern const char scliText_Prompt[];
 extern const char scliText_Help[];
 extern const char scliText_Version[];
+extern const char scliText_Set[];
+extern const char scliText_Get[];
+extern const char scliText_ConfNoTable[];
+extern const char scliText_Conf[];
 
 #endif /* SCLITEXT_H_ */

@@ -1,5 +1,5 @@
 /*
- * scliString.h
+ * scliStdC.h
  *
  *  Created on: 31.01.2016
  *      Author: Matthias Beckert <beckert.matthias@googlemail.com>
@@ -19,22 +19,30 @@
  *
  */
 
-#ifndef SCLISTRING_H_
-#define SCLISTRING_H_
+#ifndef SCLISTDC_H_
+#define SCLISTDC_H_
 
 #include "SimpleCLI/cfg/scliConfig.h"
 #include "SimpleCLI/inc/scliTypes.h"
 
-#if SCLI_USE_OWN_STR_FUNC > 0
-extern uint32_t scliString_strlen(char *);
-extern int      scliString_strncmp(char *, char *, size_t);
-extern void     scliString_memset(void*, int8_t, size_t);
+#if SCLI_USE_OWN_STDC_FUNC > 0
+extern uint32_t scliStdC_strlen(char *);
+extern int      scliStdC_strncmp(char *, char *, size_t);
+extern void     scliStdC_memset(void*, int8_t, size_t);
+extern char *   scliStdC_strncpy(char *, const char *, size_t );
+extern uint32_t scliStdC_strtoul(char *, char **, int );
+extern int32_t  scliStdC_strtol(char *, char **, int );
 
-#define strlen  scliString_strlen
-#define strncmp scliString_strncmp
-#define memset  scliString_memset
+#define strlen  scliStdC_strlen
+#define strncmp scliStdC_strncmp
+#define memset  scliStdC_memset
+#define strncpy scliStdC_strncpy
+#define strtoul scliStdC_strtoul
+#define strtol  scliStdC_strtol
+
 #else
 #include <string.h>
+#include <stdlib.h>
 #endif
 
-#endif /* SCLISTRING_H_ */
+#endif /* SCLISTDC_H_ */
