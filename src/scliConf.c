@@ -340,7 +340,6 @@ static SCLI_CMD_RET _scliConf_ConfShow(uint8_t argc, char **argv)
       if(CurrentHandle)
       {
         _scliConf_PrintConfig(CurrentHandle);
-        printf("\r\n");
       }
       else
       {

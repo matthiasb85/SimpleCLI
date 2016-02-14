@@ -25,21 +25,23 @@
 /*
  * Usage flags
  */
-#define SCLI_USE_OWN_PRINTF   1
-#define SCLI_USE_OWN_STR_FUNC 1
+#define SCLI_USE_OWN_PRINTF     1
+#define SCLI_USE_OWN_STDC_FUNC  1
+#define SCLI_USE_CFG_SYSTEM     1
 
 /*
  * Size configuration
  */
-#define SCLI_CMD_HIST         10
-#define SCLI_CMD_MAX_LEN      64
-#define SCLI_CMD_MAX_ARGS     10
-#define SCLI_GETCH_BUF_SIZE   20
-#define SCLI_CMD_NAME_MAX_LEN 10
-#define SCLI_S_HELP_MAX_LEN   32
+#define SCLI_CMD_HIST           10
+#define SCLI_CMD_MAX_LEN        64
+#define SCLI_CMD_MAX_ARGS       10
+#define SCLI_GETCH_BUF_SIZE     20
+#define SCLI_CMD_NAME_MAX_LEN   10
+#define SCLI_CONF_MAX_HANDLE    10
 
 #if SCLI_USE_OWN_PRINTF > 0
 #error "Remove this line and add own printf header"
+//#include "printf.h"
 #endif
 
 #endif /* SCLI_CFG_H_ */
